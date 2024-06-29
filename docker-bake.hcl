@@ -29,6 +29,6 @@ target "slurm" {
     "ghcr.io/abatilo/sok/${app.name}:${GITHUB_SHA}"
   ]
 
-  cache-from = ["type=gha,scope=${app.name}"]
-  cache-to = ["type=gha,mode=max,scope=${app.name}"]
+  cache-from = ["type=registry,ref=ghcr.io/abatilo/sok/${app.name}:buildcache"]
+  cache-to = ["type=registry,ref=ghcr.io/abatilo/sok/${app.name}:buildcache,mode=max"]
 }
