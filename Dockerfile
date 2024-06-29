@@ -31,14 +31,37 @@ RUN debuild -b -uc -us
 # here.
 FROM slurm-base AS slurm-runtime
 ARG SLURM_VERSION
+ARG S6_VERSION=3.1.6.2
 WORKDIR /root
+
+# Install s6-overlay
+ADD "https://github.com/just-containers/s6-overlay/releases/download/v${S6_VERSION}/s6-overlay-noarch.tar.xz" /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
+ADD "https://github.com/just-containers/s6-overlay/releases/download/v${S6_VERSION}/s6-overlay-x86_64.tar.xz" /tmp
+RUN tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz
 
 RUN <<EOF
 useradd -ms /bin/bash slurm
-apt-get install --no-install-recommends -y munge=* libmunge-dev=*
+apt-get install --no-install-recommends -y munge=0.5.14-6 libmunge-dev=0.5.14-6
 rm -rf /var/lib/apt/lists/*
 rm -rf /opt/slurm-${SLURM_VERSION}*
 EOF
+
+COPY <<EOF /etc/s6-overlay/s6-rc.d/munge/type
+longrun
+EOF
+
+COPY --chmod=700 --chown=munge:munge <<EOF /etc/munge/munge.key
+asdfasdfasdfasdfasdfasdfasdfasdf
+EOF
+
+COPY --chmod=700 <<EOF /etc/s6-overlay/s6-rc.d/munge/run
+#!/command/execlineb -P
+s6-setuidgid munge
+/usr/sbin/munged -F -f
+EOF
+
+RUN touch /etc/s6-overlay/s6-rc.d/user/contents.d/munge
 
 COPY --from=slurm-builder \
   /opt/slurm-smd_${SLURM_VERSION}-1_amd64.deb \
@@ -57,9 +80,6 @@ dpkg -i "/opt/slurm-smd-slurmdbd_${SLURM_VERSION}-1_amd64.deb"
 rm "/opt/slurm-smd-slurmdbd_${SLURM_VERSION}-1_amd64.deb"
 EOF
 
-WORKDIR /home/slurm
-USER slurm
-
 FROM slurm-runtime AS slurmctld
 COPY --from=slurm-builder \
   /opt/slurm-smd-slurmctld_${SLURM_VERSION}-1_amd64.deb \
@@ -71,9 +91,8 @@ dpkg -i "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 rm "/opt/slurm-smd-slurmctld_${SLURM_VERSION}-1_amd64.deb" "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 EOF
 
-WORKDIR /home/slurm
-USER slurm
-ENTRYPOINT ["/usr/sbin/slurmctld", "-D", "-v"]
+ENTRYPOINT ["/init"]
+CMD ["/usr/sbin/slurmctld", "-D", "-v"]
 
 FROM slurm-runtime AS slurmd
 COPY --from=slurm-builder \
@@ -86,9 +105,6 @@ dpkg -i "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 rm "/opt/slurm-smd-slurmd_${SLURM_VERSION}-1_amd64.deb" "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 EOF
 
-WORKDIR /home/slurm
-USER slurm
-
 FROM slurm-runtime AS login
 COPY --from=slurm-builder \
   /opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb \
@@ -97,6 +113,3 @@ RUN <<EOF
 dpkg -i "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 rm "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 EOF
-
-WORKDIR /home/slurm
-USER slurm
