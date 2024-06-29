@@ -31,12 +31,13 @@ RUN debuild -b -uc -us
 # here.
 FROM slurm-base AS slurm-runtime
 ARG SLURM_VERSION
-WORKDIR /opt/slurm-${SLURM_VERSION}
+WORKDIR /root
 
 RUN <<EOF
+useradd -ms /bin/bash slurm
 apt-get install --no-install-recommends -y munge=* libmunge-dev=*
 rm -rf /var/lib/apt/lists/*
-rm -rf /opt/slurm-${SLURM_VERSION}
+rm -rf /opt/slurm-${SLURM_VERSION}*
 EOF
 
 COPY --from=slurm-builder \
@@ -56,17 +57,23 @@ dpkg -i "/opt/slurm-smd-slurmdbd_${SLURM_VERSION}-1_amd64.deb"
 rm "/opt/slurm-smd-slurmdbd_${SLURM_VERSION}-1_amd64.deb"
 EOF
 
+WORKDIR /home/slurm
+USER slurm
+
 FROM slurm-runtime AS slurmctld
 COPY --from=slurm-builder \
   /opt/slurm-smd-slurmctld_${SLURM_VERSION}-1_amd64.deb \
   /opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb \
   /opt/
-
 RUN <<EOF
 dpkg -i "/opt/slurm-smd-slurmctld_${SLURM_VERSION}-1_amd64.deb"
 dpkg -i "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 rm "/opt/slurm-smd-slurmctld_${SLURM_VERSION}-1_amd64.deb" "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 EOF
+
+WORKDIR /home/slurm
+USER slurm
+ENTRYPOINT ["/usr/sbin/slurmctld", "-D", "-v"]
 
 FROM slurm-runtime AS slurmd
 COPY --from=slurm-builder \
@@ -79,6 +86,9 @@ dpkg -i "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 rm "/opt/slurm-smd-slurmd_${SLURM_VERSION}-1_amd64.deb" "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 EOF
 
+WORKDIR /home/slurm
+USER slurm
+
 FROM slurm-runtime AS login
 COPY --from=slurm-builder \
   /opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb \
@@ -87,3 +97,6 @@ RUN <<EOF
 dpkg -i "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 rm "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 EOF
+
+WORKDIR /home/slurm
+USER slurm

@@ -1,0 +1,28 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slurmctld
+  labels:
+    app: slurmctld
+spec:
+  selector:
+    matchLabels:
+      app: slurmctld
+  revisionHistoryLimit: 1
+  template:
+    metadata:
+      labels:
+        app: slurmctld
+    spec:
+      containers:
+      - name: slurmctld
+        image: ghcr.io/abatilo/sok/slurmctld
+        volumeMounts:
+        - name: slurm-conf
+          mountPath: "/etc/slurm/slurm.conf"
+          subPath: slurm.conf
+      volumes:
+      - name: slurm-conf
+        configMap:
+          name: slurm-conf
