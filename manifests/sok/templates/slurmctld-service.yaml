@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{ include "sok.labels" . | nindent 4 }}
+  name: slurmctld
+spec:
+  ports:
+  - port: 6817
+    protocol: TCP
+    targetPort: 6817
+  selector:
+    {{ include "sok.labels" . | nindent 6 }}
