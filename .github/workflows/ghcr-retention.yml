@@ -14,24 +14,18 @@ jobs:
   clean:
     runs-on: ubuntu-latest
     name: Delete old tilt images
+    strategy:
+      fail-fast: false
+      matrix:
+        image-name:
+        - "sok/slurmdbd"
+        - "slurmdbd"
     steps:
     - uses: snok/container-retention-policy@v3.0.0
       with:
         account: abatilo
         token: ${{ github.token }}
-        image-names: "sok/slurmdbd"
-        image-tags: "tilt*"  # target any image that has a tag starting with the word test or dev
-        cut-off: 1w
-        dry-run: true
-  clean2:
-    runs-on: ubuntu-latest
-    name: Delete old tilt images
-    steps:
-    - uses: snok/container-retention-policy@v3.0.0
-      with:
-        account: abatilo
-        token: ${{ github.token }}
-        image-names: "slurmdbd"
+        image-names: ${{ matrix.image-name }}
         image-tags: "tilt*"  # target any image that has a tag starting with the word test or dev
         cut-off: 1w
         dry-run: true
