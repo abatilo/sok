@@ -7,6 +7,22 @@ group "default" {
   ]
 }
 
+target "slurm-builder" {
+  args = {
+    SLURM_VERSION = "${SLURM_VERSION}"
+  }
+  target = "slurm-builder"
+  output = [
+    "type=image,name=ghcr.io/abatilo/sok/slurm-builder:${GITHUB_SHA},rewrite-timestamp=true,oci-mediatypes=true,compression=zstd,compression-level=22,force-compression=true",
+  ]
+  tags = [
+    "ghcr.io/abatilo/sok/slurm-builder:${GITHUB_SHA}"
+  ]
+
+  cache-from = ["type=registry,ref=ghcr.io/abatilo/sok/slurm-builder:buildcache"]
+  cache-to = ["type=registry,ref=ghcr.io/abatilo/sok/slurm-builder:buildcache,mode=max"]
+}
+
 target "slurm" {
   matrix = {
     app = [
@@ -18,6 +34,9 @@ target "slurm" {
   }
 
   name = "${app.name}"
+  contexts = {
+    slurm-builder = "target:slurm-builder"
+  }
   args = {
     SLURM_VERSION = "${SLURM_VERSION}"
   }
