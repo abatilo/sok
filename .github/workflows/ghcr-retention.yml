@@ -1,4 +1,7 @@
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
   schedule:
   # Every Sunday
@@ -16,7 +19,7 @@ jobs:
       with:
         account: snok
         token: ${{ github.token }}
-        image-names: "sok/slurm-builder sok/slurmdbd sok/slurmctld sok/slurmd sok/login"
+        image-names: "slurmdbd slurmctld slurmd login"
         image-tags: "tilt*"  # target any image that has a tag starting with the word test or dev
         cut-off: 1w
         dry-run: true
