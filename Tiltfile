@@ -8,4 +8,20 @@ custom_build(
   disable_push=True
 )
 
-k8s_yaml(kustomize('./manifests/'))
+# custom_build(
+#   'ghcr.io/abatilo/sok/slurmd',
+#   'GITHUB_SHA=$EXPECTED_TAG docker buildx bake slurmd --push',
+#   ['Dockerfile', 'docker-bake.hcl'],
+#   skips_local_docker=True,
+#   disable_push=True
+# )
+#
+# custom_build(
+#   'ghcr.io/abatilo/sok/login',
+#   'GITHUB_SHA=$EXPECTED_TAG docker buildx bake login --push',
+#   ['Dockerfile', 'docker-bake.hcl'],
+#   skips_local_docker=True,
+#   disable_push=True
+# )
+
+k8s_yaml(helm('./manifests/sok'))
