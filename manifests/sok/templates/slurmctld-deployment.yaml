@@ -22,7 +22,7 @@ spec:
     spec:
       initContainers:
       - name: init
-        image: busybox:1.36
+        image: ghcr.io/abatilo/sok/munge
         command:
         - sh
         - -c
@@ -50,7 +50,7 @@ spec:
           name: var
       containers:
       - name: munge
-        image: ghcr.io/abatilo/sok/slurmctld
+        image: ghcr.io/abatilo/sok/munge
         securityContext:
           # Munge user
           runAsUser: 101
