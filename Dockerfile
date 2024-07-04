@@ -1,3 +1,19 @@
+FROM ubuntu:22.04 as munge
+
+RUN <<EOF
+rm -f /etc/apt/apt.conf.d/docker-clean
+echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
+apt-get update
+apt-get install --no-install-recommends -y munge=0.5.14-6
+rm -rf /var/lib/apt/lists/*
+EOF
+
+COPY <<EOF /entrypoint.sh
+#!/bin/bash
+set -e
+mkdir -p /run/munge
+EOF
+
 # Use an ubuntu base image
 # This stage is for building the various slurm binaries as debian packages
 # We download slurm and install all of its buildtime dependencies
@@ -73,7 +89,6 @@ rm "/opt/slurm-smd-slurmctld_${SLURM_VERSION}-1_amd64.deb" "/opt/slurm-smd-clien
 EOF
 
 USER slurm
-
 ENTRYPOINT ["/usr/sbin/slurmctld", "-D", "-v"]
 
 FROM slurm-runtime AS slurmd
@@ -87,6 +102,9 @@ dpkg -i "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 rm "/opt/slurm-smd-slurmd_${SLURM_VERSION}-1_amd64.deb" "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 EOF
 
+USER slurm
+ENTRYPOINT ["/usr/sbin/slurmd", "-D", "-v", "-Z"]
+
 FROM slurm-runtime AS login
 COPY --from=slurm-builder \
   /opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb \
@@ -95,3 +113,6 @@ RUN <<EOF
 dpkg -i "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 rm "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 EOF
+
+USER slurm
+ENTRYPOINT ["tail", "-f", "/dev/null"]
