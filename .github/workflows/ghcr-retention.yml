@@ -19,14 +19,15 @@ jobs:
       matrix:
         image-name:
         - "sok/slurmdbd"
-        - "slurmdbd"
+        - "sok/slurmctld"
+        - "sok/slurmd"
+        - "sok/login"
     steps:
     - uses: snok/container-retention-policy@v3.0.0
       with:
         account: user
         token: ${{ github.token }}
         image-names: ${{ matrix.image-name }}
-        image-tags: "tilt*"  # target any image that has a tag starting with the word test or dev
-        cut-off: 1w
-        dry-run: true
+        image-tags: "tilt*"
+        cut-off: 2d
         rust-log: DEBUG
