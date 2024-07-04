@@ -35,3 +35,4 @@ jobs:
         image-tags: "tilt*"  # target any image that has a tag starting with the word test or dev
         cut-off: 1w
         dry-run: true
+        rust-log: DEBUG
