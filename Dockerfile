@@ -102,7 +102,6 @@ dpkg -i "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 rm "/opt/slurm-smd-slurmd_${SLURM_VERSION}-1_amd64.deb" "/opt/slurm-smd-client_${SLURM_VERSION}-1_amd64.deb"
 EOF
 
-USER slurm
 ENTRYPOINT ["/usr/sbin/slurmd", "-D", "-v", "-Z"]
 
 FROM slurm-runtime AS login
