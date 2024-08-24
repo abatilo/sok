@@ -4,7 +4,7 @@ RUN <<EOF
 rm -f /etc/apt/apt.conf.d/docker-clean
 echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
 apt-get update
-apt-get install --no-install-recommends -y munge=0.5.14-6
+apt-get install --no-install-recommends -y munge=*
 rm -rf /var/lib/apt/lists/*
 EOF
 
@@ -27,7 +27,7 @@ RUN <<EOF
 rm -f /etc/apt/apt.conf.d/docker-clean
 echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' >/etc/apt/apt.conf.d/keep-cache
 apt-get update
-apt-get install --no-install-recommends -y build-essential=12.9ubuntu3 fakeroot=1.28-1ubuntu1 devscripts=2.22.1ubuntu1 curl=7.81.0-1ubuntu1.16 equivs=2.3.1 ca-certificates=20230311ubuntu0.22.04.1
+apt-get install --no-install-recommends -y build-essential=* fakeroot=* devscripts=* curl=* equivs=* ca-certificates=*
 curl -LO https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2
 tar -xaf slurm-${SLURM_VERSION}.tar.bz2
 cd slurm-${SLURM_VERSION} || exit 1
